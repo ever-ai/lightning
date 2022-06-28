@@ -98,7 +98,7 @@ class DDPStrategy(ParallelStrategy):
             checkpoint_io=checkpoint_io,
             precision_plugin=precision_plugin,
         )
-        log.detail(f"{self.__class__.__name__}: initializing DDP plugin")
+        log.info(f"{self.__class__.__name__}: initializing DDP plugin")
         self._num_nodes = 1
         self._ddp_kwargs = kwargs
         self._ddp_comm_state = ddp_comm_state
@@ -178,11 +178,11 @@ class DDPStrategy(ParallelStrategy):
     def _setup_model(self, model: Module) -> DistributedDataParallel:
         """Wraps the model into a :class:`~torch.nn.parallel.distributed.DistributedDataParallel` module."""
         device_ids = self.determine_ddp_device_ids()
-        log.detail(f"setting up DDP model with device ids: {device_ids}, kwargs: {self._ddp_kwargs}")
+        log.info(f"setting up DDP model with device ids: {device_ids}, kwargs: {self._ddp_kwargs}")
         return DistributedDataParallel(module=model, device_ids=device_ids, **self._ddp_kwargs)
 
     def setup_distributed(self):
-        log.detail(f"{self.__class__.__name__}: setting up distributed...")
+        log.info(f"{self.__class__.__name__}: setting up distributed...")
         reset_seed()
 
         # determine which process we are and world size
@@ -216,7 +216,7 @@ class DDPStrategy(ParallelStrategy):
         self._ddp_kwargs["find_unused_parameters"] = self._ddp_kwargs.get("find_unused_parameters", True)
 
     def _register_ddp_hooks(self) -> None:
-        log.detail(f"{self.__class__.__name__}: registering ddp hooks")
+        log.info(f"{self.__class__.__name__}: registering ddp hooks")
         # In 1.8, DDP communication hooks only work with NCCL backend and SPSD (single process single device) mode
         # Since 1.9, DDP communication hooks can work on all backends.
         if _TORCH_GREATER_EQUAL_1_9 or (self.root_device.type == "cuda" and self._is_single_process_single_device):
@@ -235,7 +235,7 @@ class DDPStrategy(ParallelStrategy):
 
     def _enable_model_averaging(self) -> None:
         # Only called when PyTorch version >= 1.10
-        log.detail(f"{self.__class__.__name__}: reinitializing optimizers with post localSGD")
+        log.info(f"{self.__class__.__name__}: reinitializing optimizers with post localSGD")
         if self._model_averaging_period is None:
             raise ValueError(
                 "Post-localSGD algorithm is used, but model averaging period is not provided to DDP strategy."
@@ -290,7 +290,7 @@ class DDPStrategy(ParallelStrategy):
         return optimizer_output
 
     def configure_ddp(self) -> None:
-        log.detail(f"{self.__class__.__name__}: configuring DistributedDataParallel")
+        log.info(f"{self.__class__.__name__}: configuring DistributedDataParallel")
         self.pre_configure_ddp()
         self.model = self._setup_model(LightningDistributedModule(self.model))
         self._register_ddp_hooks()
@@ -321,7 +321,7 @@ class DDPStrategy(ParallelStrategy):
             prepare_for_backward(self.model, closure_loss)
 
     def model_to_device(self):
-        log.detail(f"{self.__class__.__name__}: moving model to device [{self.root_device}]...")
+        log.info(f"{self.__class__.__name__}: moving model to device [{self.root_device}]...")
         self.model.to(self.root_device)
 
     def reduce(self, tensor, group: Optional[Any] = None, reduce_op: Union[ReduceOp, str] = "mean") -> torch.Tensor:
@@ -447,7 +447,7 @@ class DDPStrategy(ParallelStrategy):
         raise DeadlockDetectedException(f"DeadLock detected from rank: {self.global_rank} \n {trace}")
 
     def teardown(self) -> None:
-        log.detail(f"{self.__class__.__name__}: tearing down strategy")
+        log.info(f"{self.__class__.__name__}: tearing down strategy")
         super().teardown()
 
         if isinstance(self.model, DistributedDataParallel):
@@ -474,7 +474,7 @@ class DDPStrategy(ParallelStrategy):
 
         if self.root_device.type == "cuda":
             # GPU teardown
-            log.detail(f"{self.__class__.__name__}: moving model to CPU")
+            log.info(f"{self.__class__.__name__}: moving model to CPU")
             self.lightning_module.cpu()
             # clean up memory
             torch.cuda.empty_cache()
