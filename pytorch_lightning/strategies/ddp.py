@@ -179,6 +179,7 @@ class DDPStrategy(ParallelStrategy):
         """Wraps the model into a :class:`~torch.nn.parallel.distributed.DistributedDataParallel` module."""
         device_ids = self.determine_ddp_device_ids()
         print(f"setting up DDP model with device ids: {device_ids}, kwargs: {self._ddp_kwargs}")
+        self._ddp_kwargs.pop("timeout")
         return DistributedDataParallel(module=model, device_ids=device_ids, **self._ddp_kwargs)
 
     def setup_distributed(self):
