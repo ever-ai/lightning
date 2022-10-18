@@ -1,13 +1,10 @@
-import os
 import sys
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-from pkg_resources import parse_requirements
-
 from lightning_app.components.python import TracerPythonScript
 from lightning_app.storage import Path
-from lightning_app.utilities.packaging.build_config import BuildConfig
+from lightning_app.utilities.packaging.build_config import BuildConfig, load_requirements
 from lightning_app.utilities.tracer import Tracer
 
 
@@ -76,7 +73,6 @@ class ScriptRunner(TracerPythonScript):
         ]
         if Path(root_path, "requirements.txt").exists():
             # Requirements from the user's code folder
-            path_req = os.path.join(root_path, "requirements.txt")
-            requirements.extend(list(map(str, parse_requirements(open(path_req).readlines()))))
+            requirements.extend(load_requirements(root_path, file_name="requirements.txt"))
 
         return BuildConfig(requirements=requirements)

@@ -130,7 +130,7 @@ Current Lightning Users
    :button_link: tutorials.html
 
 .. customcalloutitem::
-   :description: Learn how to do everything from hyperparameters sweeps to cloud training to Pruning and Quantization with Lightning.
+   :description: Learn how to do everything from hyper-parameters sweeps to cloud training to Pruning and Quantization with Lightning.
    :header: Common Workflows
    :button_link: common_usecases.html
 
@@ -287,6 +287,7 @@ Current Lightning Users
    generated/CONTRIBUTING.md
    generated/BECOMING_A_CORE_CONTRIBUTOR.md
    governance
+   versioning
    generated/CHANGELOG.md
 
 .. raw:: html
